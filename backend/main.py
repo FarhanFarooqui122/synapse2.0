@@ -5,9 +5,9 @@ Comes with:
 - CORS already configured for the Vite frontend
 - SQLite CRUD for a generic "records" table (rename to fit your PS:
   transactions, applications, claims, budgets, whatever)
-- One AI endpoint wired to the Anthropic API, ready to repurpose for
-  classification / scoring / extraction / summarization — whatever
-  your FinTech problem statement needs
+- One AI endpoint wired to OpenCode Zen (Nemotron 3.5 Lightning),
+  ready to repurpose for classification / scoring / extraction / summarization
+  — whatever your FinTech problem statement needs
 
 Run with:  uvicorn main:app --reload --port 8000
 """
@@ -18,7 +18,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
-import anthropic
+from openai import OpenAI
 
 from database import init_db, get_db
 
@@ -34,7 +34,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+# OpenCode Zen (Nemotron 3.5 Lightning) — OpenAI-compatible API
+client = OpenAI(
+    api_key=os.getenv("OPENCODE_ZEN_API_KEY"),
+    base_url=os.getenv("OPENCODE_ZEN_BASE_URL", "https://api.opencode.ai/v1"),
+)
 
 init_db()
 
@@ -120,15 +124,15 @@ TASK_PROMPTS = {
 def analyze(req: AnalyzeRequest):
     system_prompt = TASK_PROMPTS.get(req.task, TASK_PROMPTS["general"])
     try:
-        response = client.messages.create(
-            model="claude-sonnet-4-6",
+        response = client.chat.completions.create(
+            model=os.getenv("OPENCODE_ZEN_MODEL", "nemotron-3-ultra-free"),
             max_tokens=300,
-            system=system_prompt,
-            messages=[{"role": "user", "content": req.text}],
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": req.text},
+            ],
         )
-        text_out = "".join(
-            block.text for block in response.content if block.type == "text"
-        )
+        text_out = response.choices[0].message.content
         return {"result": text_out}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
