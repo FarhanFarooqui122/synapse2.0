@@ -19,13 +19,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
+load_dotenv()
 import anthropic
 
 from database import init_db, get_db
 from slack_loader import load_chat_messages
 from colab_client import filter_message, analyze_message
-
-load_dotenv()
 
 app = FastAPI(title="Synapse 1.0 Hackathon API")
 
