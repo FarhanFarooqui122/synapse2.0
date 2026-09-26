@@ -18,7 +18,7 @@ import secrets
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -125,6 +125,19 @@ def health():
     return {"status": "ok", "llm_provider": get_provider()}
 
 
+# ---------- Background AI analysis ----------
+async def _analyze_and_update(feedback_id: int, text: str, category: str | None, is_complaint: bool):
+    """Run AI analysis in background and update the feedback record."""
+    ai = analyze_single_feedback(text, category, is_complaint=is_complaint)
+    if ai:
+        with get_db() as conn:
+            conn.execute(
+                "UPDATE feedback SET sentiment = ?, theme = ?, emotion = ?, priority = ? WHERE id = ?",
+                (ai.get("sentiment"), ai.get("theme"), ai.get("emotion"), ai.get("priority"), feedback_id),
+            )
+            conn.commit()
+
+
 # ---------- CRUD: feedback ----------
 
 @app.get("/api/feedback")
@@ -135,7 +148,7 @@ def list_feedback():
 
 
 @app.post("/api/feedback")
-def create_feedback(feedback: FeedbackIn):
+async def create_feedback(feedback: FeedbackIn, background_tasks: BackgroundTasks):
     text = (feedback.text or "").strip()
     if not text:
         raise HTTPException(status_code=400, detail="Feedback text is required.")
@@ -158,12 +171,6 @@ def create_feedback(feedback: FeedbackIn):
         feedback_type = "feedback"
     is_complaint = feedback_type == "complaint"
 
-    # Per-feedback AI analysis. Must NEVER fail the submission:
-    # on any error the feedback is stored with NULL AI fields.
-    # NOTE: only text + category (+ complaint flag) go to the LLM —
-    # employee_name is never sent.
-    ai = analyze_single_feedback(text, category, is_complaint=is_complaint)
-
     # Anonymous complaints get an unguessable tracking ID so the employee
     # can check status later without any identity link. Generated for every
     # complaint, but only shown to the submitter in the POST response.
@@ -177,22 +184,24 @@ def create_feedback(feedback: FeedbackIn):
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?)",
             (
                 text, source, category, department, int(anonymous), name,
-                ai.get("sentiment") if ai else None,
-                ai.get("theme") if ai else None,
-                ai.get("emotion") if ai else None,
-                ai.get("priority") if ai else None,
+                None, None, None, None,  # AI fields filled in background
                 feedback_type, tracking_id,
             ),
         )
         conn.commit()
+        feedback_id = cur.lastrowid
         row = conn.execute(
-            "SELECT * FROM feedback WHERE id = ?", (cur.lastrowid,)
+            "SELECT * FROM feedback WHERE id = ?", (feedback_id,)
         ).fetchone()
         result = _public_row(row)
-        result["ai_analyzed"] = bool(ai)
+        result["ai_analyzed"] = False
         if tracking_id:
             result["tracking_id"] = tracking_id
-        return result
+
+    # Run AI analysis in background (non-blocking)
+    background_tasks.add_task(_analyze_and_update, feedback_id, text, category, is_complaint)
+
+    return result
 
 
 @app.delete("/api/feedback/{feedback_id}")
