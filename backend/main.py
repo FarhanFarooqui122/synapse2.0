@@ -13,18 +13,16 @@ Run with:  uvicorn main:app --reload --port 8000
 """
 import os
 from typing import Optional
-from collections import defaultdict
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
-load_dotenv()
 import anthropic
 
 from database import init_db, get_db
-from slack_loader import load_chat_messages
-from colab_client import filter_message, analyze_message
+
+load_dotenv()
 
 app = FastAPI(title="Synapse 1.0 Hackathon API")
 
@@ -52,11 +50,7 @@ class RecordIn(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     text: str
-    task: Optional[str] = "general"
-
-
-class SyncTrigger(BaseModel):
-    pass
+    task: Optional[str] = "general"  # e.g. "categorize", "fraud_check", "risk_score"
 
 
 # ---------- Health ----------
@@ -64,48 +58,6 @@ class SyncTrigger(BaseModel):
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
-
-
-def _urgency_to_score(urgency):
-    mapping = {"low": 1, "medium": 2, "high": 3, "critical": 4}
-    if isinstance(urgency, (int, float)):
-        return float(urgency)
-    return mapping.get(str(urgency).lower(), 0)
-
-
-def run_sync_pipeline():
-    messages = load_chat_messages()
-    team_data = defaultdict(lambda: {"message_count": 0, "urgency_scores": [], "category": None})
-
-    for msg in messages:
-        filter_result = filter_message(msg["text"])
-        if filter_result.get("error") or filter_result.get("category") != "work-related concern":
-            continue
-
-        analysis = analyze_message(msg["text"])
-        if analysis.get("error"):
-            continue
-
-        team = "Unassigned/Direct" if msg["type"] == "dm" else msg["conversation_id"]
-        category = analysis.get("category", "general")
-        urgency_score = _urgency_to_score(analysis.get("urgency", 0))
-
-        team_data[team]["message_count"] += 1
-        team_data[team]["urgency_scores"].append(urgency_score)
-        team_data[team]["category"] = category
-
-    with get_db() as conn:
-        cur = conn.cursor()
-        cur.execute("DELETE FROM team_feedback")
-        for team, data in team_data.items():
-            avg_urgency = sum(data["urgency_scores"]) / len(data["urgency_scores"]) if data["urgency_scores"] else 0.0
-            cur.execute(
-                "INSERT INTO team_feedback (team, category, message_count, avg_urgency_score, last_updated) VALUES (?, ?, ?, ?, datetime('now'))",
-                (team, data["category"], data["message_count"], round(avg_urgency, 2)),
-            )
-        conn.commit()
-
-    return [dict(r) for r in cur.execute("SELECT * FROM team_feedback").fetchall()]
 
 
 # ---------- CRUD: records ----------
@@ -180,18 +132,3 @@ def analyze(req: AnalyzeRequest):
         return {"result": text_out}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-# ---------- Team Feedback Sync & API ----------
-
-@app.post("/api/sync-chats")
-def sync_chats():
-    results = run_sync_pipeline()
-    return {"synced": len(results), "team_feedback": results}
-
-
-@app.get("/api/team-feedback")
-def get_team_feedback():
-    with get_db() as conn:
-        rows = conn.execute("SELECT * FROM team_feedback ORDER BY avg_urgency_score DESC").fetchall()
-        return [dict(r) for r in rows]
