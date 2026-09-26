@@ -296,7 +296,7 @@ across the organization — not as isolated texts to classify.
 
 Respond with ONLY a valid JSON object (no markdown fences, no preamble) in exactly this shape:
 {
-  "summary": "2-4 sentences on the dominant state of employee feedback: what most people feel, what is improving, what is deteriorating",
+  "summary": "Detailed 4-6 sentence executive summary including: total feedback count, sentiment breakdown with percentages (e.g., 'Out of 8 entries: 25% positive, 62% neutral, 12% negative'), key themes, top concerns, and priority actions needed.",
   "sentiment": {"positive": 0, "neutral": 0, "negative": 0},
   "themes": [{"name": "theme name", "count": 0, "description": "what employees are saying about this theme"}],
   "concerns": [{"title": "short title", "severity": "high|medium|low", "description": "why this worries employees", "evidence_count": 0}],
@@ -309,7 +309,7 @@ Rules:
 - themes: 3-6 recurring topics, count = how many entries relate to each.
 - concerns: 2-4 real problems ranked by frequency AND seriousness; evidence_count = supporting entries.
 - actionable_insights: 2-4 concrete things HR could realistically do next (e.g. "Conduct a workload review with teams reporting repeated deadline pressure"), NOT generic statements like "improve satisfaction".
-- Keep every string under 25 words."""
+- Keep every string under 25 words EXCEPT summary which can be longer."""
 
 
 def _coerce_int(v, default=0) -> int:

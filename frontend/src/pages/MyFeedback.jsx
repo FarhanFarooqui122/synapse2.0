@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import PageContainer from '../components/layout/PageContainer'
 import { api } from '../api'
-import { IDENTITY_KEY } from './Employee'
+
+const IDENTITY_KEY = 'insighthr_identity'
 
 function cap(s) {
   if (!s) return ''
