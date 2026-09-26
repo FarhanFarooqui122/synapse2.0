@@ -290,6 +290,45 @@ def analyze_single_feedback(
         return None
 
 
+def summarize_single_feedback(
+    text: str, category: str | None = None, is_complaint: bool = False
+) -> dict:
+    """On-demand, per-item AI summary + suggested action for the HR detail
+    view. Unlike analyze_single_feedback (which runs automatically at submit
+    time and swallows errors), this is triggered explicitly by an HR click,
+    so failures are raised, not hidden, and the caller shows a real error.
+    """
+    hint = f" The employee tagged it as category: {category}." if category else ""
+    complaint_ctx = " This is an explicit COMPLAINT." if is_complaint else ""
+    out = complete_json(
+        SINGLE_SUMMARY_SYSTEM,
+        f"Feedback:{hint}{complaint_ctx}\n{text[:1500]}",
+        max_tokens=300,
+    )
+    return {
+        "summary": str(out.get("summary", "")).strip(),
+        "suggested_action": str(out.get("suggested_action", "")).strip(),
+    }
+
+
+SINGLE_SUMMARY_SYSTEM = """You are an HR analyst reading ONE piece of employee
+feedback. Write a short, specific summary for an HR manager, and one concrete
+action they could take in response.
+
+Respond with ONLY a valid JSON object (no markdown, no preamble) in exactly this shape:
+{"summary": "2-3 sentence plain-language summary of what the employee is saying and why it matters", "suggested_action": "one concrete, specific action HR could take next"}
+
+Rules:
+- Base the summary only on what is actually said — never invent facts, names,
+  headcounts or dates that are not in the text.
+- If this is tagged as a COMPLAINT, weigh severity/urgency appropriately in
+  the suggested action.
+- Keep the summary under 60 words and the suggested action under 25 words.
+- Avoid generic filler like "improve communication" — be as concrete as the
+  feedback allows (e.g. "Schedule a 1:1 with the reporting manager this week"
+  rather than "address management issues")."""
+
+
 INSIGHTS_SYSTEM = """You are an HR organizational analyst. You will receive a batch of
 employee feedback entries. Read them as signals about what is happening
 across the organization — not as isolated texts to classify.
