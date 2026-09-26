@@ -35,9 +35,9 @@ export default function SlackThreads({ conversations }) {
   return (
     <div className="slack-threads">
       {conversations.map((conv, i) => (
-        <div key={i} className={`thread-card ${conv.sentiment === 'negative' ? 'thread-negative' : 'thread-positive'}`}>
-          <div className="thread-header">
-            <div className="thread-title">
+        <div key={i} className={`thread-row ${conv.sentiment === 'negative' ? 'thread-row-negative' : 'thread-row-positive'}`}>
+          <div className="thread-card">
+            <div className="thread-header">
               <span className="thread-icon">{SENTIMENT_ICONS[conv.sentiment] || '🟢'}</span>
               <span className="thread-name">
                 {conv.type === 'dm' ? '💬 DM' : '👥 Group'} — {conv.team}
@@ -46,22 +46,21 @@ export default function SlackThreads({ conversations }) {
                 {conv.sentiment === 'negative' || conv.sentiment === 'critical' ? '⚠️ Negative' : '✅ Positive'}
               </span>
             </div>
-          </div>
-
-          <div className="thread-messages">
-            {conv.messages.map((msg, j) => (
-              <div key={j} className={`message-bubble sentiment-${msg.sentiment}`}>
-                <div className="message-meta">
-                  <span className="message-user">{msg.user}</span>
-                  <span className="message-time">{new Date(msg.timestamp).toLocaleString()}</span>
-                  <span className="message-sentiment">{SENTIMENT_ICONS[msg.sentiment] || '🟡'} {msg.sentiment}</span>
+            <div className="thread-messages">
+              {conv.messages.map((msg, j) => (
+                <div key={j} className={`message-bubble sentiment-${msg.sentiment}`}>
+                  <div className="message-meta">
+                    <span className="message-user">{msg.user}</span>
+                    <span className="message-time">{new Date(msg.timestamp).toLocaleString()}</span>
+                    <span className="message-sentiment">{SENTIMENT_ICONS[msg.sentiment] || '🟡'} {msg.sentiment}</span>
+                  </div>
+                  <div className="message-text">{highlightText(msg.text, msg.highlights)}</div>
                 </div>
-                <div className="message-text">{highlightText(msg.text, msg.highlights)}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-
-          <div className="thread-summary">
+          <div className="thread-arrow">→</div>
+          <div className="summary-card">
             <h4>📋 Summary</h4>
             <p>{conv.summary}</p>
           </div>
