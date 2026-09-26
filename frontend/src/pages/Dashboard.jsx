@@ -304,7 +304,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          <RecentFeedback items={filtered.slice(0, 8)} />
+          <RecentFeedback items={filtered.slice(0, 8)} onItemUpdated={handleStatusSaved} />
           <SlackFeedback />
         </>
       )}

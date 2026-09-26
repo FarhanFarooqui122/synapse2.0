@@ -330,8 +330,8 @@ Rules:
 
 
 INSIGHTS_SYSTEM = """You are an HR organizational analyst. You will receive a batch of
-employee feedback entries. Read them as signals about what is happening
-across the organization — not as isolated texts to classify.
+employee feedback entries with PRE-COMPUTED sentiment, theme, emotion, and priority.
+Use the EXACT sentiment numbers provided in the prompt. Do not re-analyze sentiment.
 
 Respond with ONLY a valid JSON object (no markdown fences, no preamble) in exactly this shape:
 {
@@ -342,13 +342,14 @@ Respond with ONLY a valid JSON object (no markdown fences, no preamble) in exact
   "actionable_insights": [{"title": "short title", "description": "concrete action HR can take", "priority": "high|medium|low"}]
 }
 Rules:
-- sentiment counts must sum to the number of feedback entries given.
+- sentiment counts MUST match the exact numbers given in the prompt (positive, neutral, negative).
 - Entries tagged [COMPLAINT] are explicit requests for HR action: weigh them
   more heavily in concerns and recommendations, but never invent facts about them.
 - themes: 3-6 recurring topics, count = how many entries relate to each.
 - concerns: 2-4 real problems ranked by frequency AND seriousness; evidence_count = supporting entries.
 - actionable_insights: 2-4 concrete things HR could realistically do next (e.g. "Conduct a workload review with teams reporting repeated deadline pressure"), NOT generic statements like "improve satisfaction".
-- Keep every string under 25 words EXCEPT summary which can be longer."""
+- Keep every string under 25 words EXCEPT summary which can be longer.
+- Use the pre-computed theme/emotion/priority from each entry - do not re-classify."""
 
 
 def _coerce_int(v, default=0) -> int:

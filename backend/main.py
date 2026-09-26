@@ -40,8 +40,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("insighthr")
 
 MAX_FEEDBACK_LENGTH = 5000
-MAX_INSIGHT_ENTRIES = 50   # never send more than this many rows to the LLM
-MAX_ENTRY_CHARS = 500      # truncate each entry so the prompt stays bounded
+MAX_INSIGHT_ENTRIES = 15   # never send more than this many rows to the LLM
+MAX_ENTRY_CHARS = 300      # truncate each entry so the prompt stays bounded
 
 VALID_FEEDBACK_TYPES = ("feedback", "complaint")
 VALID_STATUSES = ("open", "investigating", "resolved")
@@ -314,7 +314,7 @@ def summarize_feedback(feedback_id: int):
 def generate_insights():
     with get_db() as conn:
         rows = conn.execute(
-            "SELECT id, text, category, feedback_type, status FROM feedback "
+            "SELECT id, text, category, department, sentiment, theme, emotion, priority, feedback_type, status FROM feedback "
             "ORDER BY id DESC LIMIT ?",
             (MAX_INSIGHT_ENTRIES,),
         ).fetchall()
@@ -328,24 +328,128 @@ def generate_insights():
         tag = f" [{r['category']}]" if r["category"] else ""
         if (r["feedback_type"] or "feedback") == "complaint":
             tag += f" [COMPLAINT, status={r['status'] or 'open'}]"
+        # Include pre-computed AI analysis
+        ai_fields = []
+        if r["sentiment"]: ai_fields.append(f"sentiment={r['sentiment']}")
+        if r["theme"]: ai_fields.append(f"theme={r['theme']}")
+        if r["emotion"]: ai_fields.append(f"emotion={r['emotion']}")
+        if r["priority"]: ai_fields.append(f"priority={r['priority']}")
+        if ai_fields:
+            tag += f" [{', '.join(ai_fields)}]"
         lines.append(f"-{tag} {snippet}")
     feedback_list = "\n".join(lines)
+
+    # Also compute actual sentiment breakdown from DB
+    pos = sum(1 for r in rows if r["sentiment"] == "positive")
+    neu = sum(1 for r in rows if r["sentiment"] == "neutral")
+    neg = sum(1 for r in rows if r["sentiment"] == "negative")
 
     try:
         insights = complete_json(
             INSIGHTS_SYSTEM,
-            f"Analyze these {len(rows)} employee feedback entries:\n{feedback_list}",
-            max_tokens=1024,
+            f"Analyze these {len(rows)} employee feedback entries. ACTUAL sentiment breakdown (use these exact numbers): positive={pos}, neutral={neu}, negative={neg}. Total={len(rows)}.\n{feedback_list}",
+            max_tokens=512,
         )
         return sanitize_insights(insights, len(rows))
     except LLMConfigError as e:
         # 503 (not 500): the server is fine, it just needs a key.
         raise HTTPException(status_code=503, detail=str(e))
     except (RuntimeError, ValueError) as e:
-        raise HTTPException(status_code=502, detail=str(e)[:300])
+        # Model failed - return fallback based on actual data
+        logger.warning("Model failed, returning fallback insights: %s", e)
+        return _generate_fallback_insights(rows, pos, neu, neg, len(rows))
     except Exception:
         logger.exception("Unexpected insights failure")
         raise HTTPException(status_code=500, detail="AI analysis failed. Try again.")
+
+
+def _generate_fallback_insights(rows, pos, neu, neg, total):
+    """Generate insights from local data when LLM is unavailable."""
+    # Count themes
+    theme_counts = {}
+    for r in rows:
+        theme = r["theme"] or r["category"] or "Other"
+        theme_counts[theme] = theme_counts.get(theme, 0) + 1
+
+    # Count emotions
+    emotion_counts = {}
+    for r in rows:
+        if r["emotion"]:
+            emotion_counts[r["emotion"]] = emotion_counts.get(r["emotion"], 0) + 1
+
+    # Count priorities
+    priority_counts = {"high": 0, "medium": 0, "low": 0}
+    for r in rows:
+        if r["priority"] in priority_counts:
+            priority_counts[r["priority"]] += 1
+
+    # Build themes list
+    themes = []
+    for name, count in sorted(theme_counts.items(), key=lambda x: -x[1])[:5]:
+        themes.append({
+            "name": name,
+            "count": count,
+            "description": f"{count} entries related to {name.lower()}"
+        })
+
+    # Build concerns from negative/critical entries
+    concerns = []
+    neg_entries = [r for r in rows if r["sentiment"] in ("negative", "critical")]
+    if neg_entries:
+        # Group by theme
+        neg_themes = {}
+        for r in neg_entries:
+            theme = r["theme"] or r["category"] or "Other"
+            if theme not in neg_themes:
+                neg_themes[theme] = []
+            neg_themes[theme].append(r)
+        
+        for theme, entries in sorted(neg_themes.items(), key=lambda x: -len(x[1]))[:3]:
+            concerns.append({
+                "title": f"{theme} Issues",
+                "severity": "high" if any(e["priority"] == "high" for e in entries) else "medium",
+                "description": f"{len(entries)} entries report concerns related to {theme.lower()}",
+                "evidence_count": len(entries)
+            })
+
+    # Build actionable insights
+    insights_list = []
+    if priority_counts["high"] > 0:
+        insights_list.append({
+            "title": "Address High-Priority Items",
+            "description": f"{priority_counts['high']} entries flagged as high priority require immediate attention",
+            "priority": "high"
+        })
+    if neg > pos:
+        insights_list.append({
+            "title": "Improve Employee Sentiment",
+            "description": f"Negative feedback ({neg}) exceeds positive ({pos}); consider targeted interventions",
+            "priority": "medium"
+        })
+    if themes and themes[0]["name"] != "Other":
+        insights_list.append({
+            "title": f"Focus on {themes[0]['name']}",
+            "description": f"Most discussed topic ({themes[0]['count']} entries); review related processes",
+            "priority": "medium"
+        })
+
+    # Sentiment breakdown with percentages
+    pos_pct = round(pos / total * 100) if total else 0
+    neu_pct = round(neu / total * 100) if total else 0
+    neg_pct = round(neg / total * 100) if total else 0
+
+    return {
+        "summary": (
+            f"Out of {total} entries: {pos_pct}% positive, {neu_pct}% neutral, {neg_pct}% negative. "
+            f"Top themes: {', '.join(t['name'] for t in themes[:3])}. "
+            f"Primary concerns: {', '.join(c['title'] for c in concerns[:2]) or 'none'}. "
+            f"Priority actions: {', '.join(i['title'] for i in insights_list[:2]) or 'monitor trends'}."
+        ),
+        "sentiment": {"positive": pos, "neutral": neu, "negative": neg},
+        "themes": themes,
+        "concerns": concerns,
+        "actionable_insights": insights_list
+    }
 
 
 # ---------- Slack Chat Feedback ----------
