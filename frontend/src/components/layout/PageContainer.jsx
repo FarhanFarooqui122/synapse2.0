@@ -1,9 +1,9 @@
-import Sidebar from './Sidebar'
+import TopNavbar from './TopNavbar'
 
 export default function PageContainer({ children }) {
   return (
     <div className="app-shell">
-      <Sidebar />
+      <TopNavbar />
       <main className="app-main">{children}</main>
     </div>
   )
