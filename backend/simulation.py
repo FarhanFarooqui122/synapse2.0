@@ -10,6 +10,7 @@ with real Colab API calls when the tunnel is available.
 import json
 import re
 import os
+import sqlite3
 from collections import defaultdict
 from datetime import datetime, timezone
 
@@ -142,36 +143,58 @@ def analyze_message(text):
     return {"sentiment": sentiment, "category": category, "urgency": urgency}
 
 
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hackathon.db")
+
+DEPT_MAP = {
+    "conv_002": "Engineering",
+    "conv_003": "Operations",
+    "conv_004": "Sales",
+    "conv_005": "Product",
+}
+
+
 # ---------- Pipeline ----------
 
 def run_simulation():
     conversations = MOCK_CHATS["conversations"]
     team_data = defaultdict(lambda: {"message_count": 0, "urgency_scores": [], "category": None, "sentiments": [], "priority": 0})
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    try:
+        for conv in conversations:
+            conv_id = conv["conversation_id"]
+            conv_type = conv["type"]
+            team = "Unassigned/Direct" if conv_type == "dm" else conv_id
+            department = DEPT_MAP.get(team, "Other") if conv_type == "group" else "Unassigned/Direct"
 
-    for conv in conversations:
-        conv_id = conv["conversation_id"]
-        conv_type = conv["type"]
-        team = "Unassigned/Direct" if conv_type == "dm" else conv_id
+            for msg in conv.get("messages", []):
+                text = msg["text"]
+                filter_result = filter_message(text)
+                if filter_result["category"] != "work-related concern":
+                    continue
 
-        for msg in conv.get("messages", []):
-            text = msg["text"]
-            filter_result = filter_message(text)
-            if filter_result["category"] != "work-related concern":
-                continue
+                analysis = analyze_message(text)
 
-            analysis = analyze_message(text)
+                team_data[team]["message_count"] += 1
+                team_data[team]["urgency_scores"].append(analysis["urgency"])
+                team_data[team]["sentiments"].append(analysis["sentiment"])
+                team_data[team]["category"] = analysis["category"]
 
-            team_data[team]["message_count"] += 1
-            team_data[team]["urgency_scores"].append(analysis["urgency"])
-            team_data[team]["sentiments"].append(analysis["sentiment"])
-            team_data[team]["category"] = analysis["category"]
+                conn.execute(
+                    "INSERT INTO feedback (text, source, category, department, anonymous, employee_name, sentiment, theme, emotion, priority, feedback_type, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (text, "text", analysis["category"], department, 1, None, analysis["sentiment"], analysis["category"], analysis["sentiment"], analysis["urgency"], "feedback", "open", msg["timestamp"]),
+                )
 
-            # Priority: highest urgency * sentiment weight
             sentiment_weight = {"critical": 1.0, "negative": 0.8, "neutral": 0.5, "positive": 0.3}
-            team_data[team]["priority"] = max(
-                team_data[team]["priority"],
-                analysis["urgency"] * sentiment_weight.get(analysis["sentiment"], 0.5)
-            )
+        for team, data in team_data.items():
+            data["priority"] = max(
+                data["urgency_scores"][i] * sentiment_weight.get(data["sentiments"][i], 0.5)
+                for i in range(len(data["urgency_scores"]))
+            ) if data["urgency_scores"] else 0
+
+        conn.commit()
+    finally:
+        conn.close()
 
     # Build aggregated output
     results = []
