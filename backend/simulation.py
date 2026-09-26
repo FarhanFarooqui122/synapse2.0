@@ -81,9 +81,68 @@ WORK_KEYWORDS = [
 ]
 
 POSITIVE_WORDS = ["great", "amazing", "celebration", "wonderful", "good", "best", "awesome"]
-NEGATIVE_WORDS = ["tight", "burnout", "territory", "issue", "inappropriate", "reported", "concern"]
+NEGATIVE_WORDS = ["tight", "burnout", "territory", "issue", "inappropriate", "reported", "concern", "working late", "unrealistic", "lack of communication", "no clear career", "frequent context", "technical debt", "burnout", "normalized", "top-down", "inadequate"]
+
+NEGATIVE_KEYWORDS = ["tight", "burnout", "territory", "issue", "inappropriate", "reported", "concern", "working late", "unrealistic", "lack of", "no clear", "frequent", "technical debt", "normalized", "top-down", "inadequate", "late", "without recognition"]
+
+POSITIVE_WORDS = ["great", "amazing", "celebration", "wonderful", "good", "best", "awesome", "supportive", "valued", "flexible", "mentorship", "fair", "significantly", "collaborative", "thorough"]
 
 CRITICAL_KEYWORDS = ["burnout", "conduct", "inappropriate", "hr", "investigate", "reported"]
+
+SUMMARIES = {
+    "conv_001": "Casual conversation about lunch plans. No work-related concerns flagged. Team morale appears positive.",
+    "conv_002": "Workload concerns raised. Deadline moved up with insufficient headcount. One member reports burnout after 60-hour weeks. P1 priority — immediate HR attention recommended.",
+    "conv_003": "Facilities discussion about office renovation. Generally positive sentiment with some logistical questions. No urgent concerns.",
+    "conv_004": "Serious workplace conduct issue reported. Client complaint about inappropriate behavior from senior representative. HR investigation required. P1 critical priority.",
+    "conv_005": "Positive milestone celebration. Team hit quarterly target. Good morale signal.",
+}
+
+def get_conversations():
+    results = []
+    for conv in MOCK_CHATS["conversations"]:
+        conv_id = conv["conversation_id"]
+        conv_type = conv["type"]
+        team = "Unassigned/Direct" if conv_type == "dm" else conv_id
+        members = conv.get("members", [])
+
+        messages = []
+        for msg in conv.get("messages", []):
+            text = msg["text"]
+            analysis = analyze_message(text)
+            highlights = []
+            text_lower = text.lower()
+            for kw in NEGATIVE_KEYWORDS:
+                if kw.lower() in text_lower:
+                    idx = text_lower.find(kw.lower())
+                    highlights.append({
+                        "keyword": text[idx:idx+len(kw)],
+                        "start": idx,
+                        "end": idx + len(kw),
+                    })
+            messages.append({
+                "user": msg["user"],
+                "text": text,
+                "timestamp": msg["timestamp"],
+                "sentiment": analysis["sentiment"],
+                "category": analysis["category"],
+                "urgency": analysis["urgency"],
+                "highlights": highlights,
+            })
+
+        has_negative = any(m["sentiment"] in ("negative", "critical") for m in messages)
+        results.append({
+            "conversation_id": conv_id,
+            "type": conv_type,
+            "team": team,
+            "members": members,
+            "messages": messages,
+            "has_negative": has_negative,
+            "summary": SUMMARIES.get(conv_id, "No summary available."),
+            "sentiment": "negative" if has_negative else "positive",
+        })
+
+    results.sort(key=lambda x: (0 if x["has_negative"] else 1, x["messages"][0]["timestamp"] if x["messages"] else ""))
+    return results
 
 
 def classify_sentiment(text):

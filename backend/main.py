@@ -32,7 +32,7 @@ from llm import (
     get_provider,
     sanitize_insights,
 )
-from simulation import run_simulation, build_heatmap_data
+from simulation import run_simulation, build_heatmap_data, get_conversations
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -323,3 +323,8 @@ def slack_feedback():
     results = run_simulation()
     heatmap = build_heatmap_data(results)
     return {"team_feedback": results, "heatmap_data": heatmap}
+
+
+@app.get("/api/slack-conversations")
+def slack_conversations():
+    return {"conversations": get_conversations()}
