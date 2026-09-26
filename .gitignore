@@ -6,8 +6,3 @@ __pycache__/
 .env
 hackathon.db
 .DS_Store
-# Local development / sensitive files
-gmail_poller.py
-last_check.json
-token.json
-credentials.json
