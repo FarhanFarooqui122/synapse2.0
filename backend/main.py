@@ -32,6 +32,7 @@ from llm import (
     get_provider,
     sanitize_insights,
 )
+from simulation import run_simulation, build_heatmap_data
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -313,3 +314,12 @@ def generate_insights():
     except Exception:
         logger.exception("Unexpected insights failure")
         raise HTTPException(status_code=500, detail="AI analysis failed. Try again.")
+
+
+# ---------- Slack Chat Feedback ----------
+
+@app.get("/api/slack-feedback")
+def slack_feedback():
+    results = run_simulation()
+    heatmap = build_heatmap_data(results)
+    return {"team_feedback": results, "heatmap_data": heatmap}

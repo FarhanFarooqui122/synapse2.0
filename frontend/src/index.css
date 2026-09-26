@@ -1185,3 +1185,30 @@ select, input, textarea { font-family: inherit; }
   .employee-content { padding: 24px 14px 60px; }
   .feedback-card { padding: 20px; }
 }
+
+/* ---------- Slack Feedback ---------- */
+
+.slack-feedback { margin-top: 32px; }
+.slack-feedback h3 { font-size: 1.25rem; margin-bottom: 8px; }
+.slack-feedback .subtitle { color: #667085; margin-bottom: 16px; font-size: 0.875rem; }
+
+.slack-heatmap { margin-top: 24px; }
+.slack-heatmap h3 { font-size: 1.25rem; margin-bottom: 16px; }
+
+.heatmap-table { display: flex; flex-direction: column; gap: 8px; }
+.heatmap-header { display: grid; grid-template-columns: 180px 100px 80px 80px 80px 80px 140px; padding: 8px 12px; background: #F2F4F7; border-radius: 6px; font-size: 0.75rem; font-weight: 600; color: #667085; text-transform: uppercase; }
+.heatmap-row { display: grid; grid-template-columns: 180px 100px 80px 80px 80px 80px 140px; padding: 8px 12px; background: #FFF; border: 1px solid #E4E7EC; border-radius: 6px; align-items: center; font-size: 0.875rem; }
+.heatmap-team { font-weight: 600; color: #101828; }
+.heatmap-bar { height: 8px; border-radius: 4px; margin-right: 8px; display: inline-block; vertical-align: middle; }
+.heatmap-value { font-weight: 600; }
+
+.category-badge { color: #FFF; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; }
+
+.team-feedback-list { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.team-card { padding: 16px; background: #FFF; border: 1px solid #E4E7EC; border-radius: 8px; }
+.team-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.team-name { font-weight: 700; font-size: 1rem; color: #101828; }
+.priority-badge { color: #FFF; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; }
+.team-details { display: flex; gap: 16px; font-size: 0.875rem; color: #475467; }
+
+.empty-state { color: #98A2B3; font-style: italic; padding: 24px; text-align: center; }

@@ -9,6 +9,7 @@ import ComplaintCard from '../components/dashboard/ComplaintCard'
 import EmotionChart from '../components/dashboard/EmotionChart'
 import AIInsightCard from '../components/dashboard/AIInsightCard'
 import RecentFeedback from '../components/dashboard/RecentFeedback'
+import SlackFeedback from '../components/slack/SlackFeedback'
 import { api } from '../api'
 
 const RANGE_DAYS = { 'Last 7 Days': 7, 'Last 30 Days': 30, 'Last 3 Months': 90 }
@@ -304,6 +305,7 @@ export default function Dashboard() {
           )}
 
           <RecentFeedback items={filtered.slice(0, 8)} />
+          <SlackFeedback />
         </>
       )}
     </PageContainer>
