@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const API_BASE = 'http://localhost:8000/api'
+// VITE_API_BASE can point at a hosted backend; defaults to local dev.
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api'
 
 export const api = {
   health: () => axios.get(`${API_BASE}/health`),
@@ -12,4 +13,10 @@ export const api = {
   deleteFeedback: (id) => axios.delete(`${API_BASE}/feedback/${id}`),
 
   generateInsights: () => axios.post(`${API_BASE}/insights`),
+
+  updateStatus: (id, status, resolution_note) =>
+    axios.patch(`${API_BASE}/feedback/${id}/status`, { status, resolution_note }),
+
+  complaintStatus: (trackingId) =>
+    axios.get(`${API_BASE}/complaints/status/${encodeURIComponent(trackingId.trim())}`),
 }

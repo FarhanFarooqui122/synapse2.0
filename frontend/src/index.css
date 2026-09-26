@@ -97,6 +97,7 @@ select, input, textarea { font-family: inherit; }
   transition: background 0.15s ease;
 }
 .btn-primary:hover { background: var(--brand-dark); }
+.btn-primary:disabled { opacity: 0.65; cursor: wait; }
 .btn-block { width: 100%; }
 
 .btn-secondary {
@@ -276,7 +277,7 @@ select, input, textarea { font-family: inherit; }
 /* ============ KPI row ============ */
 .kpi-row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 16px;
   margin-bottom: 20px;
 }
@@ -607,6 +608,41 @@ select, input, textarea { font-family: inherit; }
   margin-bottom: 20px;
 }
 
+.form-error {
+  background: var(--negative-tint);
+  color: var(--negative);
+  border: 1px solid #FECDC2;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.state-card {
+  text-align: center;
+  padding: 48px 32px;
+}
+
+.state-card h3 { font-size: 1.15rem; margin-bottom: 8px; }
+.state-card p { color: var(--ink-muted); font-size: 0.92rem; margin-bottom: 18px; }
+
+.pending {
+  color: var(--ink-faint);
+  font-style: italic;
+  font-size: 0.82rem;
+}
+
+.stt-notice {
+  background: var(--medium-tint);
+  color: var(--medium);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
 .category-section, .voice-section, .privacy-section {
   margin-bottom: 24px;
   padding-top: 20px;
@@ -903,6 +939,78 @@ select, input, textarea { font-family: inherit; }
 .ai-insight-highlight .card-header { gap: 8px; color: var(--brand-dark); }
 .ai-insight-highlight .card-header h3 { color: var(--brand-dark); }
 .ai-insight-text { font-size: 1rem; line-height: 1.6; color: var(--ink); }
+
+/* ============ Complaints / tracking / my-feedback ============ */
+.type-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.type-badge.feedback { background: var(--neutral-tint); color: var(--ink-muted); }
+.type-badge.complaint { background: var(--negative-tint); color: var(--negative); }
+
+.tracking-id {
+  font-family: ui-monospace, monospace;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--brand-dark);
+  background: var(--brand-tint);
+  border-radius: var(--radius-sm);
+  padding: 10px 18px;
+  margin: 8px 0 12px;
+  display: inline-block;
+}
+
+.tracking-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tracking-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-family: ui-monospace, monospace;
+  text-transform: uppercase;
+}
+
+.tracked-result {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.hr-update {
+  background: var(--neutral-tint);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-top: 10px;
+  font-size: 0.88rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hr-update-date { color: var(--ink-faint); font-size: 0.78rem; }
+
+.my-list { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
+.my-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+.my-item-text { font-size: 0.95rem; margin-bottom: 4px; }
+
+.complaint-actions { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.complaint-actions-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
 /* ============ Responsive ============ */
 @media (max-width: 1100px) {

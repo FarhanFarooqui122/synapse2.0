@@ -6,4 +6,3 @@ __pycache__/
 .env
 hackathon.db
 .DS_Store
-credentials.json

@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Brain, MessageSquare, LineChart, Settings } from 'lucide-react'
+import { LayoutDashboard, Brain, MessageSquare, Inbox, LineChart, Settings } from 'lucide-react'
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, disabled: false },
   { to: '/analysis', label: 'AI Analysis', icon: Brain, disabled: false },
   { to: '/employee', label: 'Feedback', icon: MessageSquare, disabled: false },
+  { to: '/my-feedback', label: 'My Feedback', icon: Inbox, disabled: false },
   { to: '#', label: 'Trends', icon: LineChart, disabled: true },
   { to: '#', label: 'Settings', icon: Settings, disabled: true },
 ]

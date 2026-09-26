@@ -1,5 +1,11 @@
 # Synapse 1.0 — FinTech Hackathon Boilerplate
 
+> **Current pivot: AI-Powered Employee Feedback & Insights (InsightHR).**
+> Employees submit text/voice feedback → per-item AI analysis (sentiment,
+> theme, emotion, priority) → HR dashboard with AI summary, themes, concerns
+> and recommended actions. The generic records/AI-task table below is stale;
+> see **Demo Setup** for the real flow.
+
 A working full-stack starter so you're not scaffolding from zero when the
 problem statement drops. Stack: **React (Vite) + FastAPI + SQLite + Anthropic API**.
 
@@ -13,7 +19,38 @@ problem statement drops. Stack: **React (Vite) + FastAPI + SQLite + Anthropic AP
   categorization, fraud risk check, and credit/loan risk scoring — pick
   whichever matches your PS, or add a new one in `TASK_PROMPTS` in `main.py`
 
-## Setup (do this BEFORE the hackathon)
+## Demo Setup (InsightHR, 5 minutes)
+
+1. **Get a free Gemini API key:** https://aistudio.google.com/apikey
+2. **Configure the backend:**
+   ```bash
+   cd backend
+   cp .env.example .env   # then set GEMINI_API_KEY in .env
+   ```
+3. **Start the backend:**
+   ```bash
+   pip install -r requirements.txt
+   uvicorn main:app --reload --port 8000
+   ```
+4. **Seed demo data (optional but recommended):**
+   ```bash
+   python seed.py            # 18 fictional feedback rows across 45 days
+   python seed.py --reset    # clear + reseed
+   python seed.py --raw      # seed without sample AI labels
+   ```
+5. **Start the frontend:**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+6. Open http://localhost:5173 → submit feedback on the **Feedback** page,
+   then open **Dashboard** → **Generate AI Insights**.
+
+No key? The app still runs: feedback saves, seeded labels render, and the
+dashboard explains exactly which key is missing when you hit Generate.
+
+## Setup (original boilerplate reference)
 
 ### Backend
 ```bash

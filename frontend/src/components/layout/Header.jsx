@@ -10,7 +10,7 @@ export default function Header({ anonymousMode, onToggleAnonymous }) {
 
       <nav className="employee-header-nav">
         <Link to="/employee" className="employee-nav-link active">Give Feedback</Link>
-        <span className="employee-nav-link disabled">My Feedback</span>
+        <Link to="/my-feedback" className="employee-nav-link">My Feedback</Link>
       </nav>
 
       <div className="anonymous-toggle-group">
