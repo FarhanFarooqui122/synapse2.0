@@ -23,6 +23,16 @@ def init_db():
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS team_feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                team TEXT NOT NULL,
+                category TEXT,
+                message_count INTEGER DEFAULT 0,
+                avg_urgency_score REAL DEFAULT 0.0,
+                last_updated TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
         conn.commit()
 
 

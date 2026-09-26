@@ -1,0 +1,55 @@
+{
+  "conversations": [
+    {
+      "conversation_id": "conv_001",
+      "type": "dm",
+      "members": ["jane.doe", "mike.chen"],
+      "messages": [
+        {"user": "jane.doe", "text": "hey mike, want to grab lunch later?", "timestamp": "2026-09-20T12:30:00Z"},
+        {"user": "mike.chen", "text": "sure, Thai place?", "timestamp": "2026-09-20T12:31:00Z"},
+        {"user": "jane.doe", "text": "yes please!", "timestamp": "2026-09-20T12:32:00Z"}
+      ]
+    },
+    {
+      "conversation_id": "conv_002",
+      "type": "group",
+      "members": ["alice.kim", "bob.smith", "carol.jones"],
+      "messages": [
+        {"user": "alice.kim", "text": "the new deadline for the Q4 report is moved up to Friday", "timestamp": "2026-09-21T09:00:00Z"},
+        {"user": "bob.smith", "text": "thats really tight, we need more headcount", "timestamp": "2026-09-21T09:05:00Z"},
+        {"user": "carol.jones", "text": "im already working 60 hour weeks and this is burnout territory", "timestamp": "2026-09-21T09:10:00Z"}
+      ]
+    },
+    {
+      "conversation_id": "conv_003",
+      "type": "group",
+      "members": ["dave.wilson", "erin.park", "frank.liu"],
+      "messages": [
+        {"user": "dave.wilson", "text": "the office renovation starts next week", "timestamp": "2026-09-22T14:00:00Z"},
+        {"user": "erin.park", "text": "great, my desk will be near the window finally", "timestamp": "2026-09-22T14:05:00Z"},
+        {"user": "frank.liu", "text": "any idea when the printer gets moved", "timestamp": "2026-09-22T14:10:00Z"},
+        {"user": "dave.wilson", "text": "probably thursday", "timestamp": "2026-09-22T14:15:00Z"}
+      ]
+    },
+    {
+      "conversation_id": "conv_004",
+      "type": "dm",
+      "members": ["grace.tan", "henry.zhao"],
+      "messages": [
+        {"user": "grace.tan", "text": "there was a conduct issue in the sales department last night", "timestamp": "2026-09-23T08:00:00Z"},
+        {"user": "henry.zhao", "text": "what happened exactly", "timestamp": "2026-09-23T08:02:00Z"},
+        {"user": "grace.tan", "text": "a client reported inappropriate behavior from a senior rep, HR needs to investigate", "timestamp": "2026-09-23T08:05:00Z"}
+      ]
+    },
+    {
+      "conversation_id": "conv_005",
+      "type": "group",
+      "members": ["iris.moore", "jack.thompson", "karen.lee"],
+      "messages": [
+        {"user": "iris.moore", "text": "the team celebration is on thursday at 5pm", "timestamp": "2026-09-24T16:00:00Z"},
+        {"user": "jack.thompson", "text": "celebration for what", "timestamp": "2026-09-24T16:02:00Z"},
+        {"user": "karen.lee", "text": "we hit our quarterly target, everyone did amazing work", "timestamp": "2026-09-24T16:05:00Z"}
+      ]
+    }
+  ]
+}
