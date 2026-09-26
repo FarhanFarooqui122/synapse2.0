@@ -31,6 +31,7 @@ from llm import (
     complete_json,
     get_provider,
     sanitize_insights,
+    summarize_single_feedback,
 )
 
 load_dotenv()
@@ -270,6 +271,37 @@ def complaint_status(tracking_id: str):
         "submitted_at": row["created_at"],
         "updated_at": row["updated_at"] or row["created_at"],
     }
+
+
+# ---------- Per-feedback AI summary ----------
+# On-demand summary + suggested action for the HR detail view.
+# Runs only when HR explicitly clicks "Generate AI Summary" for a single item.
+
+@app.post("/api/feedback/{feedback_id}/summarize")
+def summarize_feedback(feedback_id: int):
+    """On-demand AI summary + suggested action for one feedback item, shown
+    in the HR detail view. Separate from the automatic per-submit analysis —
+    this only runs when HR explicitly clicks 'Generate AI Summary'."""
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT text, category, feedback_type FROM feedback WHERE id = ?",
+            (feedback_id,),
+        ).fetchone()
+
+    if row is None:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+
+    is_complaint = (row["feedback_type"] or "feedback") == "complaint"
+
+    try:
+        return summarize_single_feedback(row["text"], row["category"], is_complaint)
+    except LLMConfigError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except (RuntimeError, ValueError) as e:
+        raise HTTPException(status_code=502, detail=str(e)[:300])
+    except Exception:
+        logger.exception("Unexpected single-feedback summary failure")
+        raise HTTPException(status_code=500, detail="AI summary failed. Try again.")
 
 
 # ---------- AI insights endpoint ----------

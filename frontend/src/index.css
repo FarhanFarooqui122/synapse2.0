@@ -1316,6 +1316,51 @@ select, input, textarea { font-family: inherit; }
   margin-bottom: 10px;
 }
 
+/* ============ Modal: per-feedback AI summary ============ */
+.modal-summary-section {
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+  margin-bottom: 18px;
+}
+
+.modal-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+.modal-summary-card {
+  background: linear-gradient(180deg, var(--brand-tint), var(--surface));
+  border: 1px solid #C7D2FE;
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+
+.modal-summary-text {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.modal-summary-action {
+  border-top: 1px solid #C7D2FE;
+  padding-top: 10px;
+}
+
+.modal-summary-action p {
+  font-size: 0.88rem;
+  color: var(--brand-dark);
+  font-weight: 500;
+  margin-top: 4px;
+}
+
 /* ============ Complaints / tracking / my-feedback ============ */
 .type-badge {
   display: inline-block;

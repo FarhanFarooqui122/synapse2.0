@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, Sparkles } from 'lucide-react'
 import { api } from '../../api'
 
 const SENTIMENT_DOT = { positive: '🟢', neutral: '⚪', negative: '🔴' }
@@ -30,7 +30,24 @@ export default function FeedbackDetailModal({ feedback, onClose, onUpdated }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  const [summary, setSummary] = useState(null)
+  const [summarizing, setSummarizing] = useState(false)
+  const [summaryError, setSummaryError] = useState('')
+
   const isComplaint = (feedback.feedback_type || 'feedback') === 'complaint'
+
+  const handleGenerateSummary = async () => {
+    setSummarizing(true)
+    setSummaryError('')
+    try {
+      const res = await api.summarizeFeedback(feedback.id)
+      setSummary(res.data)
+    } catch (err) {
+      setSummaryError(err.response?.data?.detail || 'Could not generate summary. Try again.')
+    } finally {
+      setSummarizing(false)
+    }
+  }
 
   const handleSave = async () => {
     setError('')
@@ -96,6 +113,33 @@ export default function FeedbackDetailModal({ feedback, onClose, onUpdated }) {
             <div className="modal-tag">
               <span className="modal-tag-label">Emotion</span>
               <span className="modal-tag-value">{cap(feedback.emotion)}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="modal-summary-section">
+          <div className="modal-summary-header">
+            <span className="section-label">AI Summary</span>
+            <button
+              type="button"
+              className="btn-secondary btn-small"
+              onClick={handleGenerateSummary}
+              disabled={summarizing}
+            >
+              <Sparkles size={14} />
+              {summarizing ? 'Generating...' : summary ? 'Regenerate' : 'Generate AI Summary'}
+            </button>
+          </div>
+
+          {summaryError && <p className="modal-error">{summaryError}</p>}
+
+          {summary && (
+            <div className="modal-summary-card">
+              <p className="modal-summary-text">{summary.summary}</p>
+              <div className="modal-summary-action">
+                <span className="modal-tag-label">Suggested Action</span>
+                <p>{summary.suggested_action}</p>
+              </div>
             </div>
           )}
         </div>
