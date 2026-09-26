@@ -1,4 +1,4 @@
-import { RadialBarChart, RadialBar, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
 const PRIORITY_COLORS = {
   'HIGH PRIORITY': '#DC2626',
@@ -8,27 +8,36 @@ const PRIORITY_COLORS = {
 
 export default function PriorityScore({ data }) {
   const color = PRIORITY_COLORS[data.label] || '#667085'
-  const chartData = [{ name: 'Priority', value: data.score }]
+  
+  const factorScores = data.factors.map((factor, index) => {
+    const baseScore = Math.round((data.score / data.factors.length) * (index + 1))
+    return { factor: factor.slice(0, 20), score: baseScore, fullFactor: factor, color }
+  })
 
   return (
     <div className="card stage-card priority-score-card">
-      <div className="card-header">
-        <h3>Explainable Priority Score</h3>
-      </div>
+      <div className="card-header"><h3>Explainable Priority Score</h3></div>
       <div className="priority-score-display">
-        <RadialBarChart width={160} height={160} cx="50%" cy="50%" innerRadius={55} outerRadius={70} data={chartData}>
-          <RadialBar
-            dataKey="value"
-            background={{ fill: '#E4E7EC' }}
-            radius={70}
-            innerRadius={55}
-            minAngle={0}
-            maxAngle={360}
-            roundCap={true}
-          >
-            <Cell fill={color} />
-          </RadialBar>
-        </RadialBarChart>
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={factorScores} layout="vertical" margin={{ top: 5, right: 5, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E4E7EC" />
+            <XAxis type="number" domain={[0, data.score + 10]} tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: '#667085' }} />
+            <YAxis type="category" dataKey="factor" width={120} tickLine={false} axisLine={false} tick={{ fontSize: 11, fontWeight: 500, fill: '#1D2939' }} />
+            <Tooltip 
+              contentStyle={{ background: '#fff', border: '1px solid #E4E7EC', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+              formatter={(value) => [`${value}`, 'Score']}
+              labelFormatter={(label) => {
+                const item = factorScores.find(d => d.factor === label)
+                return item ? item.fullFactor : label
+              }}
+            />
+            <Bar dataKey="score" radius={[0, 4, 4, 0]} maxBarSize={24}>
+              {factorScores.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
         <div className="priority-score-center">
           <span className="priority-score-number" style={{ color }}>{data.score}</span>
           <span className="priority-score-max">/ 100</span>

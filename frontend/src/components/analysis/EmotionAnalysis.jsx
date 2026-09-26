@@ -9,9 +9,7 @@ export default function EmotionAnalysis({ data }) {
 
   return (
     <div className="card stage-card">
-      <div className="card-header">
-        <h3>Detected Emotions</h3>
-      </div>
+      <div className="card-header"><h3>Detected Emotions</h3></div>
       <div className="emotion-chart">
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 5, left: 20, bottom: 5 }}>
