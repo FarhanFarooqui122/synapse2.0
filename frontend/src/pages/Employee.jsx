@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import PageContainer from '../components/layout/PageContainer'
 import Header from '../components/layout/Header'
 import FeedbackForm from '../components/employee/FeedbackForm'
 import SubmissionSuccess from '../components/employee/SubmissionSuccess'
@@ -20,7 +21,7 @@ export default function Employee() {
   }
 
   return (
-    <div className="employee-page">
+    <PageContainer>
       <Header anonymousMode={anonymousMode} onToggleAnonymous={setAnonymousMode} />
 
       <div className="employee-content">
@@ -37,6 +38,6 @@ export default function Employee() {
           <SubmissionSuccess onSubmitAnother={() => setSubmitted(false)} />
         )}
       </div>
-    </div>
+    </PageContainer>
   )
 }
