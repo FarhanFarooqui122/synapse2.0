@@ -98,6 +98,13 @@ export default function VoiceRecorder({ transcript, onTranscriptChange }) {
         </div>
       </div>
 
+      {!supportsSpeechRecognition && !micUnavailable && (
+        <p className="stt-notice">
+          Live transcription isn&apos;t supported in this browser — recording and
+          playback still work, and you can type or edit the transcript manually.
+        </p>
+      )}
+
       {micUnavailable ? (
         <label className="upload-audio-btn">
           <Upload size={16} /> Upload audio
