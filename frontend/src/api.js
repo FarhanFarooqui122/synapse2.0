@@ -1,17 +1,22 @@
 import axios from 'axios'
 
-const API_BASE = 'http://localhost:8000/api'
+// VITE_API_BASE can point at a hosted backend; defaults to local dev.
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8001/api'
 
 export const api = {
   health: () => axios.get(`${API_BASE}/health`),
 
-  listRecords: () => axios.get(`${API_BASE}/records`),
+  listFeedback: () => axios.get(`${API_BASE}/feedback`),
 
-  createRecord: (record) => axios.post(`${API_BASE}/records`, record),
+  createFeedback: (feedback) => axios.post(`${API_BASE}/feedback`, feedback),
 
-  deleteRecord: (id) => axios.delete(`${API_BASE}/records/${id}`),
+  deleteFeedback: (id) => axios.delete(`${API_BASE}/feedback/${id}`),
 
-  // task: "general" | "categorize" | "fraud_check" | "risk_score"
-  analyze: (text, task = 'general') =>
-    axios.post(`${API_BASE}/analyze`, { text, task }),
+  generateInsights: () => axios.post(`${API_BASE}/insights`),
+
+  updateStatus: (id, status, resolution_note) =>
+    axios.patch(`${API_BASE}/feedback/${id}/status`, { status, resolution_note }),
+
+  complaintStatus: (trackingId) =>
+    axios.get(`${API_BASE}/complaints/status/${encodeURIComponent(trackingId.trim())}`),
 }
