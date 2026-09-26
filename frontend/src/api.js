@@ -16,6 +16,8 @@ export const api = {
 
   summarizeFeedback: (id) => axios.post(`${API_BASE}/feedback/${id}/summarize`),
 
+  slackConversations: () => axios.get(`${API_BASE}/slack-conversations`),
+
   updateStatus: (id, status, resolution_note) =>
     axios.patch(`${API_BASE}/feedback/${id}/status`, { status, resolution_note }),
 

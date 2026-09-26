@@ -9,16 +9,14 @@ export default function ThemeAnalysis({ data }) {
   const themes = [data.primary, ...data.secondary]
   const chartData = themes.map((theme, index) => ({
     name: theme,
-    value: index === 0 ? data.similarity : Math.round(data.similarity * (0.9 - index * 0.15)),
+    similarity: index === 0 ? data.similarity : Math.round(data.similarity * (0.9 - index * 0.15)),
     color: THEME_COLORS[index % THEME_COLORS.length],
     isPrimary: index === 0,
   }))
 
   return (
     <div className="card stage-card">
-      <div className="card-header">
-        <h3>Theme Detection</h3>
-      </div>
+      <div className="card-header"><h3>Theme Detection</h3></div>
       <div className="theme-primary">
         <span className="section-label">Primary Theme</span>
         <div className="theme-primary-value" style={{ background: chartData[0].color }}>
@@ -36,7 +34,7 @@ export default function ThemeAnalysis({ data }) {
               contentStyle={{ background: '#fff', border: '1px solid #E4E7EC', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
               formatter={(value) => [`${value}%`, '']}
             />
-            <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={20}>
+            <Bar dataKey="similarity" radius={[0, 4, 4, 0]} maxBarSize={20}>
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.isPrimary ? entry.color : entry.color + '80'} />
               ))}

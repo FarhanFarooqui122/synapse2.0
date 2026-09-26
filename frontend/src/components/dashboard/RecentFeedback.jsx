@@ -1,6 +1,3 @@
-import { useState } from 'react'
-import FeedbackDetailModal from './FeedbackDetailModal'
-
 const SENTIMENT_DOT = { positive: '🟢', neutral: '⚪', negative: '🔴' }
 
 function cap(s) {
@@ -24,9 +21,7 @@ function who(f) {
   return f.employee_name || 'Employee'
 }
 
-export default function RecentFeedback({ items, onItemUpdated }) {
-  const [selected, setSelected] = useState(null)
-
+export default function RecentFeedback({ items }) {
   return (
     <div className="card">
       <div className="card-header">
@@ -43,14 +38,7 @@ export default function RecentFeedback({ items, onItemUpdated }) {
         {items.map((f) => {
           const isComplaint = (f.feedback_type || 'feedback') === 'complaint'
           return (
-            <div
-              className="feedback-table-row clickable"
-              key={f.id}
-              onClick={() => setSelected(f)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => { if (e.key === 'Enter') setSelected(f) }}
-            >
+            <div className="feedback-table-row" key={f.id}>
               <span className="ft-text">
                 <span className={`type-badge ${isComplaint ? 'complaint' : 'feedback'}`}>
                   {isComplaint ? '⚠ Complaint' : 'Feedback'}
@@ -81,14 +69,6 @@ export default function RecentFeedback({ items, onItemUpdated }) {
           )
         })}
       </div>
-
-      {selected && (
-        <FeedbackDetailModal
-          feedback={selected}
-          onClose={() => setSelected(null)}
-          onUpdated={(updated) => onItemUpdated?.(updated)}
-        />
-      )}
     </div>
   )
 }
