@@ -5,4 +5,6 @@ __pycache__/
 *.pyc
 .env
 hackathon.db
+data/simulation_output.json
+backend/data/simulation_output.json
 .DS_Store
